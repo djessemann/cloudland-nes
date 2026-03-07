@@ -6,6 +6,40 @@
 
 ---
 
+## Build Target
+
+- **Output:** A valid `.nes` ROM playable in any NES emulator (FCEUX, Mesen, Nestopia)
+- **Language:** 6502 assembly using **ca65/ld65** (cc65 suite)
+- **Mapper:** NROM-256 (mapper 0) — 32KB PRG-ROM + 8KB CHR-ROM. Sufficient for this game.
+- **iNES header:** Required. 2 PRG banks, 1 CHR bank, mapper 0, vertical mirroring
+- **Build command:**
+  ```
+  ca65 -o main.o src/main.asm
+  ld65 -C nes.cfg -o cloud-land.nes main.o
+  ```
+- **Recommended project structure:**
+  ```
+  project/
+  ├── src/
+  │   ├── header.asm       ; iNES header
+  │   ├── reset.asm        ; Hardware init (exact boot sequence required)
+  │   ├── main.asm         ; Game state machine + main loop
+  │   ├── nmi.asm          ; NMI handler — PPU updates only
+  │   ├── ppu.asm          ; VRAM buffer, palette load, nametable write
+  │   ├── input.asm        ; Controller read
+  │   ├── entities.asm     ; Player, birds, hearts (struct-of-arrays layout)
+  │   ├── collision.asm    ; Platform + sprite collision
+  │   └── data/
+  │       ├── palettes.asm
+  │       └── levels.asm
+  ├── chr/
+  │   └── tiles.chr        ; 8KB CHR binary — all tile and sprite graphics
+  ├── nes.cfg              ; Linker memory layout
+  └── Makefile
+  ```
+
+---
+
 ## Technical Foundation
 
 - **Resolution:** 256×240 pixels
@@ -15,7 +49,36 @@
 - **Font:** Press Start 2P, 8px, white
 - **Platform size:** 72×8px, color white (`#FFFFFF`)
 - **Background:** The level background color fills the entire frame and is purely visual — it has no collision or gameplay interaction
-- **Sprite size:** 16×16px (player, birds); 8×8px (hearts)
+- **Sprite size:** 16×16px (player, birds — implemented as 2×2 hardware sprites); 8×8px (hearts — 1 hardware sprite)
+
+### NES Hardware Constraints
+
+- **Palettes:** 4 background palettes × 4 colors each (first color of each is shared backdrop = level background color). 4 sprite palettes × 4 colors each (first color transparent). Plan palette assignments accordingly.
+- **Sprite limit:** Max 64 hardware sprites total; max 8 per scanline. At peak: 4 birds (2 sprites each) + player (2 sprites) + 2 hearts (1 each) = 12 sprites. Scanline conflicts are possible — use flicker mitigation by cycling sprite priority each frame if needed.
+- **CHR tile budget:** 256 tiles total across two 128-tile pattern tables. Background tiles in $0000–$0FFF, sprite tiles in $1000–$1FFF. Plan tile usage to stay within budget.
+- **VRAM writes:** Never write to PPU ($2006/$2007) outside of vblank. All updates must be buffered in RAM and flushed during NMI.
+- **Game loop:** Use the "split" method — game logic runs in the main thread, PPU updates run in NMI only. This handles lag frames correctly.
+- **Zero page:** Use aggressively for frequently accessed variables (entity positions, game state flags, counters) — 6502 zero page access is significantly faster.
+
+### NES Palette Index Mapping
+
+The hex values specified throughout this doc are the target colors. Map them to the closest standard 2C02 NES palette indices when writing palette data:
+
+| Color | Hex | Context |
+|---|---|---|
+| Level 1 / Title BG | `#39C3DF` | NES $2C |
+| Level 2 BG | `#3AD974` | NES $1A |
+| Level 3 BG | `#51A5FE` | NES $21 |
+| Level 4 BG | `#8084FE` | NES $22 |
+| Level 5 BG | `#F9B8FE` | NES $33 |
+| White (platforms, text) | `#FFFFFF` | NES $30 |
+| Dark red (win stripe) | `#A62721` | NES $16 |
+| Orange (win stripe) | `#E19321` | NES $27 |
+| Yellow-green (win stripe) | `#DEE086` | NES $38 |
+| Dark green (win stripe) | `#2D7A00` | NES $0A |
+| Blue (win stripe) | `#0B53D7` | NES $12 |
+| Violet (win stripe) | `#9515BE` | NES $14 |
+| Dark purple (win dialog) | `#300092` | NES $03 |
 
 ---
 
@@ -196,40 +259,70 @@ All platform coordinates reference the top-left corner of the 72×8px platform w
 
 ## Configurable Constants Block
 
-All of the following should be defined together in a single easily-editable config section (top of main game file or a dedicated `config` object/file):
+All tunable values should be defined together at the top of a dedicated `constants.asm` file (or clearly marked block in `main.asm`) using ca65 `.define` or `.byte`/`.word` table declarations. This makes future tuning — adding lives, score multipliers, difficulty modes — straightforward without touching game logic.
 
+```asm
+; === PHYSICS ===
+GRAVITY            = $02   ; pixels/frame² (fixed point)
+JUMP_FORCE_MIN     = $04   ; minimum jump velocity
+JUMP_FORCE_MAX     = $09   ; maximum jump velocity (held A)
+WALK_SPEED         = $02   ; pixels/frame
+
+; === BIRDS (one value per level, indexed 0–4) ===
+bird_speed:         .byte $01, $01, $02, $02, $03
+bird_osc_speed:     .byte $01, $01, $02, $02, $03
+bird_osc_amplitude: .byte $18, $18, $20, $20, $28
+
+; === HEARTS ===
+HEART_DESPAWN_MIN  = $B4   ; ~3 seconds at 60fps (180 frames)
+HEART_DESPAWN_MAX  = $FF   ; ~4.25 seconds — adjust upward for full 8s range
+; (use a per-level multiplier table to increase speed each level)
+heart_speed_mult:   .byte $10, $12, $14, $16, $18  ; 1.0x → 1.5x scale
+
+; === COLLISION ===
+BIRD_HITBOX_SIZE   = $0A   ; 10px centered in 16px sprite
+BIRD_HITBOX_OFFSET = $03   ; offset from sprite origin to hitbox origin
+
+; === SCORING ===
+HEARTS_PER_LEVEL   = $0A   ; 10 hearts to clear a level
+MAX_SCORE          = $32   ; 50 (decimal)
 ```
-// Physics
-GRAVITY
-JUMP_FORCE_MIN
-JUMP_FORCE_MAX
-WALK_SPEED
-
-// Birds (per level array)
-BIRD_SPEED[5]
-BIRD_OSCILLATION_SPEED[5]
-BIRD_OSCILLATION_AMPLITUDE[5]
-
-// Hearts
-HEART_DESPAWN_MIN_SECONDS
-HEART_DESPAWN_MAX_SECONDS
-HEART_SPAWN_SPEED_MULTIPLIER[5]
-
-// Collision
-BIRD_HITBOX_SIZE  // centered reduced hitbox, ~10x10
-
-// Scoring
-HEARTS_PER_LEVEL  // default: 10
-MAX_SCORE         // default: 50
-```
-
-This structure should make it straightforward to add lives, score multipliers, difficulty modes, or other complexity later without refactoring core game logic.
 
 ---
 
-## Implementation Notes
+## Sprite Art (CHR Tile Data)
 
+The Figma file uses colored rectangles as placeholder sprites to indicate position, size, and animation state — not final pixel art. Claude Code should generate CHR tile data that approximates the intended shapes as closely as possible in 8×8px tile increments using the NES palette.
+
+**Player** (16×16px = 2×2 hardware tiles): A simple humanoid figure. The death sprite is the standing sprite flipped vertically. Use the purple/violet color range from the NES palette.
+
+**Enemy bird** (16×16px = 2×2 hardware tiles): A simple side-facing bird shape with 4 wing animation frames — wings up, wings mid-up, wings level, wings mid-down. Animation should read as a flapping cycle.
+
+**Heart** (8×8px = 1 hardware tile): A simple heart shape.
+
+**Platforms and background**: Rendered as background tiles, not sprites. Platforms are solid white (`#FFFFFF` / NES `$30`). Background is a flat color fill using the per-level palette backdrop color.
+
+**HUD text and all on-screen text**: Rendered using background tiles. Every character that appears on screen must exist as a CHR tile — the NES has no system font. To make adding or changing text easy in the future, implement a complete font tileset and a reusable text-rendering routine:
+
+- Define CHR tiles for the full printable ASCII range: A–Z, 0–9, and punctuation including space, colon, exclamation mark, question mark, apostrophe, period, comma, open/close parentheses, dash, and any others used in current screen text
+- Lay the font tiles out in CHR in ASCII order starting at a known tile index (e.g. tile $20 = space, matching standard ASCII offsets) so the rendering routine can convert any ASCII character to a tile index with simple subtraction
+- Implement a `draw_text` subroutine that accepts a pointer to a null-terminated string and an X/Y nametable position, and writes the corresponding tile indices to the VRAM buffer. All screen text — HUD labels, LEVEL CLEAR, GAME OVER, YOU WIN, PAUSED, PRESS START — should be rendered through this single routine
+- With this system in place, changing or adding any text anywhere in the game only requires editing string data, with no CHR changes needed
+
+Font style should match Press Start 2P — a blocky, all-caps, 8×8px bitmap letterform consistent with NES-era games.
+
+All CHR data should be defined inline in assembly (`.byte` sequences) or as a binary `tiles.chr` file — whichever approach produces a cleaner, more maintainable result. Placeholder art that reads clearly at small size is the goal; visual polish can be iterated later.
+
+---
+
+
+
+- Follow the standard NES boot sequence exactly (sei, cld, disable APU IRQ, init stack, clear RAM, wait two vblanks before PPU use)
+- Use the "split" game loop: logic in main thread, all PPU writes buffered and flushed in NMI only
+- Entity data (player, birds, hearts) should use struct-of-arrays layout — separate arrays for x_pos[], y_pos[], state[], etc. This is idiomatic 6502 and significantly faster than array-of-structs
+- Platform collision: store platform data as a table of (x, y, width) entries per level; check player AABB against each entry each frame
 - Research and reference NES platformer physics conventions (Super Mario Bros. in particular) for gravity, jump arc, walk acceleration, and collision feel
 - Bird hitbox should feel forgiving — err on the side of the player surviving near-misses
 - Heart spawn logic should validate reachability before placing — don't spawn hearts that require frame-perfect jumps
 - All game state transitions should be clean (no residual motion or input bleed between states)
+- If sprite scanline overflow occurs (8+ sprites on one line), implement per-frame sprite cycling to produce even flicker rather than sprites disappearing entirely
