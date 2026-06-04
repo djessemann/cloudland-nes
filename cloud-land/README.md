@@ -39,8 +39,8 @@ adventure on Level 1.
 
 ## CONTROLS
 
-```
-
+| Control | Action |
+|---|---|
 | Control Pad (Left/Right) | Move your cat |
 | A Button | Jump (hold for a higher jump!) |
 | START | Pause / Unpause / Advance screens |

@@ -60,7 +60,7 @@
 
 ### NES Hardware Constraints
 
-- **Palettes:** 4 background palettes x 4 colors each (first color of each is shared backdrop = level background color). 4 sprite palettes x 4 colors each (first color transparent).
+- **Palettes:** 4 background palettes x 4 colors each (first color of each is shared backdrop = level background color). 4 sprite palettes x 4 colors each (first color transparent). Sprite palette assignments: player = palette 0, birds = palette 1, hearts = palette 2.
 - **Sprite limit:** Max 64 hardware sprites total; max 8 per scanline. At peak: player (4 sprites) + 4 birds (4 sprites each) + 2 hearts (1 each) = 22 sprites.
 - **CHR tile budget:** 256 tiles total across two 128-tile pattern tables. Background tiles in $0000-$0FFF, sprite tiles in $1000-$1FFF.
 - **VRAM writes:** Never write to PPU ($2006/$2007) outside of vblank. All updates buffered in RAM (192-byte VRAM buffer) and flushed during NMI.
@@ -183,7 +183,7 @@ A purple cat with yellow eyes and pink paws. 16x16px (2x2 hardware sprites).
 - Sprite flips horizontally on direction change
 - Birds oscillate vertically within their zone (±12 pixels from zone center, 1px/frame)
 - Wing-flap animation: 4 frames in ping-pong pattern (0,1,2,1), cycling every 6 frames
-- Birds cannot enter the HUD region (y < 24)
+- Birds cannot enter the HUD region (y < 24). This is enforced implicitly by the bounding-zone geometry — zone 0's center (36) ± oscillation amplitude (12) yields a minimum y of 24, exactly at the HUD boundary. No runtime clamp is needed as long as zone 0's center and the amplitude stay in sync.
 
 ### Bounding Zones
 
@@ -195,7 +195,7 @@ A purple cat with yellow eyes and pink paws. 16x16px (2x2 hardware sprites).
 | 3 (bottom) | 172 | y=160 to y=184 |
 
 ### Stomp Mechanic
-- If player is **falling** (vel_y >= 0) AND **above** the bird (player_y < bird_y) at the moment of collision: **stomp** — bird dies, player bounces upward (-6 px/frame; hold A for reduced bounce of -1 px/frame)
+- If player is **falling** (vel_y >= 0) AND **above** the bird (player_y < bird_y) at the moment of collision: **stomp** — bird dies, player bounces upward at -6 px/frame. The bounce arc obeys the same variable-jump cutoff as a regular jump: holding A during the bounce maintains the full arc, releasing A early truncates the upward velocity for a shorter bounce.
 - Any other collision angle = **player death**
 - Stomped birds play a brief upward pop then gravity-driven fall animation
 - Birds respawn after 5 seconds (300 frames) on the opposite side of the screen from the player
@@ -230,9 +230,9 @@ All platform coordinates reference the top-left corner of the 48x8px platform. E
 **Level 1 — 12 platforms (dense 3x4 staggered grid):**
 | Row | Y | Platform X positions |
 |---|---|---|
-| Top | 56 | 48, 128, 208 |
+| Top | 56 | 32, 120, 208 |
 | Upper-mid | 104 | 0, 88, 176 |
-| Lower-mid | 152 | 48, 128, 208 |
+| Lower-mid | 152 | 32, 120, 208 |
 | Bottom | 200 | 0, 88, 176 |
 
 **Level 2 — 6 platforms (zigzag):**
@@ -246,17 +246,17 @@ All platform coordinates reference the top-left corner of the 48x8px platform. E
 **Level 3 — 4 platforms (diagonal):**
 | Row | Y | Platform X positions |
 |---|---|---|
-| Top | 56 | 32 |
-| Upper-mid | 104 | 152 |
-| Lower-mid | 152 | 32 |
-| Bottom | 200 | 152 |
+| Top | 56 | 48 |
+| Upper-mid | 104 | 136 |
+| Lower-mid | 152 | 48 |
+| Bottom | 200 | 136 |
 
 **Level 4 — 6 platforms (valley shape):**
 | Row | Y | Platform X positions |
 |---|---|---|
-| Top | 56 | 0, 176 |
-| Upper-mid | 104 | 0, 176 |
-| Lower-mid | 152 | 88 |
+| Top | 56 | 24, 168 |
+| Upper-mid | 104 | 16, 176 |
+| Lower-mid | 152 | 96 |
 | Bottom | 200 | 88 |
 
 **Level 5 — 4 platforms (scattered):**
@@ -273,8 +273,8 @@ All platform coordinates reference the top-left corner of the 48x8px platform. E
 |---|---|---|---|
 | 1 | 10 | 184 | (x=0, y=200) — bottom-left |
 | 2 | 24 | 40 | (x=0, y=56) — top-left |
-| 3 | 40 | 136 | (x=32, y=152) — mid-left |
-| 4 | 104 | 136 | (x=88, y=152) — center |
+| 3 | 40 | 136 | (x=48, y=152) — mid-left |
+| 4 | 104 | 136 | (x=96, y=152) — center |
 | 5 | 200 | 184 | (x=176, y=200) — bottom-right |
 
 ---
