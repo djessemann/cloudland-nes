@@ -89,25 +89,36 @@
     jsr clear_nametable
     jsr clear_oam_sprites
 
-    ; Draw "CLOUD LAND" large text centered
-    ; 10 chars x 3 tiles wide = 30 tiles; screen = 32 tiles
-    ; Start at tile col 1, tile row 5
-    lda #$01
+    ; Draw "CLOUD" — 5 chars x 6-tile stride = 30 tiles; col 1, row 3
+    lda #<str_title_cloud
+    sta ptr_lo
+    lda #>str_title_cloud
+    sta ptr_hi
+    lda #$01                    ; Col 1
     sta temp_1
-    lda #$05
+    lda #$03                    ; Row 3
     sta temp_2
-    jsr draw_large_text
+    jsr draw_title_ppu
 
-    ; Draw "PRESS START" centered
-    ; 11 chars; center = (32-11)/2 = 10 (tile col 10)
-    ; Place at tile row 20
+    ; Draw "LAND" — 4 chars x 6-tile stride = 24 tiles; col 4, row 13
+    lda #<str_title_land
+    sta ptr_lo
+    lda #>str_title_land
+    sta ptr_hi
+    lda #$04                    ; Col 4
+    sta temp_1
+    lda #$0D                    ; Row 13
+    sta temp_2
+    jsr draw_title_ppu
+
+    ; Draw "PRESS START" centered — 11 chars, col 10, row 23
     lda #<str_press_start
     sta ptr_lo
     lda #>str_press_start
     sta ptr_hi
     lda #$0A                    ; Col 10
     sta temp_1
-    lda #$14                    ; Row 20
+    lda #$17                    ; Row 23
     sta temp_2
     jsr draw_text
 

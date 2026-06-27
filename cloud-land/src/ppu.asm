@@ -129,111 +129,113 @@
 .endproc
 
 ; ------------------------------------------------------------
-; draw_large_text
-; Draw "CLOUD LAND" using 3x3 tile large font characters.
-; Reads str_cloud_land: each byte is base tile for a 3x3 char.
+; draw_title_ppu
+; Write a title word using 5x7 tile cloud-puff chars directly to PPU.
+; Must be called with rendering disabled (title screen init only).
+; Each character is 5 tiles wide with a 1-tile gap (6 tile stride).
+; Tile $60 = cloud puff; tile $00 = blank.
 ;
-; Input: temp_1 = starting nametable tile X
-;        temp_2 = starting nametable tile Y
-; Clobbers: A, X, Y, temp_3, temp_4, ptr_lo, ptr_hi
+; Input: ptr_lo/ptr_hi = char-index string ($FF terminated)
+;        temp_1 = starting tile column
+;        temp_2 = starting tile row
+; Clobbers: A, X, Y, temp_3, temp_4, ptr2_lo, ptr2_hi
 ; ------------------------------------------------------------
-.proc draw_large_text
-    lda #<str_cloud_land
-    sta ptr_lo
-    lda #>str_cloud_land
-    sta ptr_hi
+.proc draw_title_ppu
+    lda #0
+    sta temp_3                  ; char counter (string index)
 
-    ldy #$00                    ; String index
 @char_loop:
-    lda (ptr_lo), y
-    cmp #$FF                    ; Terminator?
+    ldy temp_3
+    lda (ptr_lo), y             ; char index from string
+    cmp #$FF
     beq @done
-    sta temp_3                  ; temp_3 = base tile
 
-    ; Save Y (string index) and temp_1 (current X) on stack
-    tya
-    pha
-    lda temp_1
-    pha
+    pha                         ; save char index
 
-    ; Draw 3 rows of 3 tiles each
-    ldx #$00                    ; Row counter
+    ; Compute tile column for this char: temp_1 + temp_3 * 6
+    lda temp_3
+    asl a                       ; *2
+    sta temp_4
+    asl a                       ; *4
+    clc
+    adc temp_4                  ; *6
+    clc
+    adc temp_1                  ; + start_col
+    sta temp_4                  ; temp_4 = char tile column
+
+    ; Load char bitmask pointer
+    pla                         ; restore char index
+    tax
+    lda title_char_data_lo, x
+    sta ptr2_lo
+    lda title_char_data_hi, x
+    sta ptr2_hi
+
+    ; Draw 7 rows for this character
+    ldy #0                      ; Y = row offset (0-6)
+
 @row_loop:
-    cpx #$03
-    beq @next_char
+    cpy #7
+    beq @char_done
 
-    stx temp_4                  ; Save row counter
+    ; Compute PPU address for this row: $2000 + (temp_2+Y)*32 + temp_4
+    tya
+    pha                         ; [1] save row offset
 
-    ; Compute tile Y for this row
-    txa
     clc
-    adc temp_2                  ; A = tile Y + row
+    adc temp_2                  ; A = absolute row
+    pha                         ; [2] save absolute row
 
-    ; Build VRAM buffer entry
-    pha                         ; Save Y coord
-    ldx vram_buf_len
-
-    ; PPU address high byte
-    pla
-    pha
     lsr a
     lsr a
     lsr a
     clc
-    adc #$20
-    sta vram_buf, x
-    inx
+    adc #$20                    ; A = hi byte ($20 + row>>3)
+    pha                         ; [3] save hi byte
 
-    ; PPU address low byte
-    pla
-    asl a
-    asl a
-    asl a
-    asl a
-    asl a
-    clc
-    adc temp_1
-    sta vram_buf, x
-    inx
+    lda $2002                   ; reset PPU address latch
+    pla                         ; [3] restore hi byte
+    sta $2006
 
-    ; Length = 3
-    lda #$03
-    sta vram_buf, x
-    inx
-
-    ; 3 tile indices: base + (row * 3) + 0, +1, +2
-    lda temp_4                  ; Row
+    pla                         ; [2] restore absolute row
     asl a
+    asl a
+    asl a
+    asl a
+    asl a                       ; A = (absolute_row << 5) & $FF
     clc
-    adc temp_4                  ; * 3
-    clc
-    adc temp_3                  ; + base tile
-    sta vram_buf, x
-    inx
-    clc
-    adc #$01
-    sta vram_buf, x
-    inx
-    clc
-    adc #$01
-    sta vram_buf, x
-    inx
+    adc temp_4                  ; + char col
+    sta $2006
 
-    stx vram_buf_len
+    pla                         ; [1] restore row offset
+    tay
 
-    ldx temp_4                  ; Restore row counter
-    inx
+    ; Load mask byte and write 5 tiles (bits 7-3 = cols 0-4)
+    lda (ptr2_lo), y
+    ldx #5
+@bit_loop:
+    asl a                       ; shift bit 7 into carry
+    pha                         ; save shifted mask
+    bcc @write_blank
+    lda #$60                    ; cloud puff tile
+    sta $2007
+    jmp @bit_done
+@write_blank:
+    lda #$00
+    sta $2007
+@bit_done:
+    pla                         ; restore shifted mask
+    dex
+    bne @bit_loop
+
+    lda #$00                    ; gap tile (6th column)
+    sta $2007
+
+    iny                         ; next row
     jmp @row_loop
 
-@next_char:
-    pla                         ; Restore X pos
-    clc
-    adc #$03
-    sta temp_1
-
-    pla                         ; Restore string index
-    tay
-    iny
+@char_done:
+    inc temp_3
     jmp @char_loop
 
 @done:
