@@ -68,6 +68,8 @@ temp_3:          .res 1
 temp_4:          .res 1
 ptr_lo:          .res 1        ; General purpose pointer (low byte)
 ptr_hi:          .res 1        ; General purpose pointer (high byte)
+ptr2_lo:         .res 1        ; Secondary pointer (title draw)
+ptr2_hi:         .res 1        ; Secondary pointer (title draw)
 
 ; Player state
 player_x:        .res 1        ; Pixel X position

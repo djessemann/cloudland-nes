@@ -34,9 +34,27 @@ str_you_win:
 str_goodnite:
     .byte "GOODNITE XOXO", $00
 
-; Large title: "CLOUD LAND" — stored as tile offsets into large font
-; Each char maps to a base tile: C=$60, L=$69, O=$72, U=$7B, D=$84
-; Space=$8D, A=$96, N=$9F
-; The draw routine reads this and places 3x3 tile blocks
-str_cloud_land:
-    .byte $60, $69, $72, $7B, $84, $8D, $69, $96, $9F, $84, $FF  ; $FF = terminator
+; Title char index sequences for draw_title_ppu.
+; Character indices: C=0, L=1, O=2, U=3, D=4, A=5, N=6
+; $FF = terminator
+str_title_cloud:
+    .byte 0, 1, 2, 3, 4, $FF       ; C L O U D
+str_title_land:
+    .byte 1, 5, 6, 4, $FF          ; L A N D
+
+; Pointer tables for character bitmask data (indexed by char index 0-6)
+title_char_data_lo:
+    .byte <title_char_C, <title_char_L, <title_char_O
+    .byte <title_char_U, <title_char_D, <title_char_A, <title_char_N
+title_char_data_hi:
+    .byte >title_char_C, >title_char_L, >title_char_O
+    .byte >title_char_U, >title_char_D, >title_char_A, >title_char_N
+
+; 5x7 bitmasks: bits 7-3 = columns 0-4 (left to right), 7 rows top to bottom
+title_char_C: .byte $78,$80,$80,$80,$80,$80,$78  ; .XXXX / X.... x5 / .XXXX
+title_char_L: .byte $80,$80,$80,$80,$80,$80,$F8  ; X.... x6 / XXXXX
+title_char_O: .byte $70,$88,$88,$88,$88,$88,$70  ; .XXX. / X...X x5 / .XXX.
+title_char_U: .byte $88,$88,$88,$88,$88,$88,$70  ; X...X x6 / .XXX.
+title_char_D: .byte $F0,$88,$88,$88,$88,$88,$F0  ; XXXX. / X...X x5 / XXXX.
+title_char_A: .byte $70,$88,$88,$F8,$88,$88,$88  ; .XXX. / X...X x2 / XXXXX / X...X x3
+title_char_N: .byte $88,$C8,$A8,$98,$88,$88,$88  ; X...X / XX..X / X.X.X / X..XX / X...X x3
