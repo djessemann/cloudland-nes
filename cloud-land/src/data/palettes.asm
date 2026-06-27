@@ -6,18 +6,18 @@
 .segment "RODATA"
 
 ; --- Title screen palette ---
-; Sky blue background, white cloud body, medium-blue shadow for cloud puff tiles
+; Cyan/turquoise background (matches level 1), white cloud body, med-blue shadow
 palette_title:
     ; Background palettes
-    .byte $21, $30, $11, $0F       ; BG 0: sky blue, white, med-blue shadow, black
-    .byte $21, $30, $11, $0F       ; BG 1
-    .byte $21, $30, $11, $0F       ; BG 2
-    .byte $21, $30, $11, $0F       ; BG 3
+    .byte $2C, $30, $11, $0F       ; BG 0: cyan, white, med-blue shadow, black
+    .byte $2C, $30, $11, $0F       ; BG 1
+    .byte $2C, $30, $11, $0F       ; BG 2
+    .byte $2C, $30, $11, $0F       ; BG 3
     ; Sprite palettes (sprites hidden on title screen; values don't matter)
-    .byte $21, $28, $15, $04
-    .byte $21, $28, $19, $09
-    .byte $21, $15, $25, $30
-    .byte $21, $0F, $10, $30
+    .byte $2C, $28, $15, $04
+    .byte $2C, $28, $19, $09
+    .byte $2C, $15, $25, $30
+    .byte $2C, $0F, $10, $30
 
 ; --- Level 1 palette ---
 palette_level1:
