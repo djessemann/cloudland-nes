@@ -309,221 +309,245 @@
 .res (($60 - $5B) * 16), $00
 
 ; ============================================================
-; Large Title Font — 3x3 tiles (24x24px) per character
-; Tiles $60-$9E: C, L, O, U, D, space, A, N (8 chars x 9 tiles)
-; "CLOUD LAND" = C L O U D [space] L A N D
-; Layout per char: top-left, top-mid, top-right,
-;                  mid-left, mid-mid, mid-right,
-;                  bot-left, bot-mid, bot-right
+; Large Title Font — cloud puff letters (3x3 tiles per character)
+; Each character is a 3×3 grid of 8×8 tiles.
+; Occupied positions use a cloud puff tile:
+;   plane0 rows 0-3 = white disc (color 1),
+;   plane1 rows 4-5 = blue shadow (color 2).
+; Empty positions are blank (transparent sky).
+;
+; Tiles $60-$A7: C, L, O, U, D, space, A, N
+; Layout: top-left, top-mid, top-right,
+;         mid-left, mid-mid, mid-right,
+;         bot-left, bot-mid, bot-right
 ; ============================================================
 
 ; === 'C' large — tiles $60-$68 ===
-; Top-left
-.byte $03,$0F,$1F,$3F,$3C,$78,$78,$70
-.byte $00,$00,$00,$00,$00,$00,$00,$00
-; Top-mid
-.byte $FF,$FF,$FF,$FF,$00,$00,$00,$00
-.byte $00,$00,$00,$00,$00,$00,$00,$00
-; Top-right
-.byte $C0,$F0,$F8,$FC,$3C,$1E,$1E,$0E
-.byte $00,$00,$00,$00,$00,$00,$00,$00
-; Mid-left
-.byte $70,$70,$70,$70,$70,$70,$70,$70
-.byte $00,$00,$00,$00,$00,$00,$00,$00
-; Mid-mid
+; Grid:  X X .
+;        X . .
+;        X X .
+; TL — puff
+.byte $3C,$7E,$FF,$FF,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$7E,$3C,$00,$00
+; TM — puff
+.byte $3C,$7E,$FF,$FF,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$7E,$3C,$00,$00
+; TR — blank
 .byte $00,$00,$00,$00,$00,$00,$00,$00
 .byte $00,$00,$00,$00,$00,$00,$00,$00
-; Mid-right
+; ML — puff
+.byte $3C,$7E,$FF,$FF,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$7E,$3C,$00,$00
+; MM — blank
 .byte $00,$00,$00,$00,$00,$00,$00,$00
 .byte $00,$00,$00,$00,$00,$00,$00,$00
-; Bot-left
-.byte $70,$78,$78,$3C,$3F,$1F,$0F,$03
+; MR — blank
 .byte $00,$00,$00,$00,$00,$00,$00,$00
-; Bot-mid
-.byte $00,$00,$00,$00,$FF,$FF,$FF,$FF
 .byte $00,$00,$00,$00,$00,$00,$00,$00
-; Bot-right
-.byte $00,$1E,$1E,$3C,$FC,$F8,$F0,$C0
+; BL — puff
+.byte $3C,$7E,$FF,$FF,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$7E,$3C,$00,$00
+; BM — puff
+.byte $3C,$7E,$FF,$FF,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$7E,$3C,$00,$00
+; BR — blank
+.byte $00,$00,$00,$00,$00,$00,$00,$00
 .byte $00,$00,$00,$00,$00,$00,$00,$00
 
 ; === 'L' large — tiles $69-$71 ===
-; Top-left
-.byte $70,$70,$70,$70,$70,$70,$70,$70
-.byte $00,$00,$00,$00,$00,$00,$00,$00
-; Top-mid
-.byte $00,$00,$00,$00,$00,$00,$00,$00
-.byte $00,$00,$00,$00,$00,$00,$00,$00
-; Top-right
-.byte $00,$00,$00,$00,$00,$00,$00,$00
-.byte $00,$00,$00,$00,$00,$00,$00,$00
-; Mid-left
-.byte $70,$70,$70,$70,$70,$70,$70,$70
-.byte $00,$00,$00,$00,$00,$00,$00,$00
-; Mid-mid
+; Grid:  X . .
+;        X . .
+;        X X X
+; TL — puff
+.byte $3C,$7E,$FF,$FF,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$7E,$3C,$00,$00
+; TM — blank
 .byte $00,$00,$00,$00,$00,$00,$00,$00
 .byte $00,$00,$00,$00,$00,$00,$00,$00
-; Mid-right
+; TR — blank
 .byte $00,$00,$00,$00,$00,$00,$00,$00
 .byte $00,$00,$00,$00,$00,$00,$00,$00
-; Bot-left
-.byte $70,$70,$70,$70,$7F,$7F,$7F,$7F
+; ML — puff
+.byte $3C,$7E,$FF,$FF,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$7E,$3C,$00,$00
+; MM — blank
 .byte $00,$00,$00,$00,$00,$00,$00,$00
-; Bot-mid
-.byte $00,$00,$00,$00,$FF,$FF,$FF,$FF
 .byte $00,$00,$00,$00,$00,$00,$00,$00
-; Bot-right
-.byte $00,$00,$00,$00,$FE,$FE,$FE,$FE
+; MR — blank
 .byte $00,$00,$00,$00,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$00,$00,$00,$00
+; BL — puff
+.byte $3C,$7E,$FF,$FF,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$7E,$3C,$00,$00
+; BM — puff
+.byte $3C,$7E,$FF,$FF,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$7E,$3C,$00,$00
+; BR — puff
+.byte $3C,$7E,$FF,$FF,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$7E,$3C,$00,$00
 
 ; === 'O' large — tiles $72-$7A ===
-; Top-left
-.byte $03,$0F,$1F,$3F,$3C,$78,$78,$70
+; Grid:  X X X
+;        X . X
+;        X X X
+; TL — puff
+.byte $3C,$7E,$FF,$FF,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$7E,$3C,$00,$00
+; TM — puff
+.byte $3C,$7E,$FF,$FF,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$7E,$3C,$00,$00
+; TR — puff
+.byte $3C,$7E,$FF,$FF,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$7E,$3C,$00,$00
+; ML — puff
+.byte $3C,$7E,$FF,$FF,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$7E,$3C,$00,$00
+; MM — blank
 .byte $00,$00,$00,$00,$00,$00,$00,$00
-; Top-mid
-.byte $FF,$FF,$FF,$FF,$00,$00,$00,$00
 .byte $00,$00,$00,$00,$00,$00,$00,$00
-; Top-right
-.byte $C0,$F0,$F8,$FC,$3C,$1E,$1E,$0E
-.byte $00,$00,$00,$00,$00,$00,$00,$00
-; Mid-left
-.byte $70,$70,$70,$70,$70,$70,$70,$70
-.byte $00,$00,$00,$00,$00,$00,$00,$00
-; Mid-mid
-.byte $00,$00,$00,$00,$00,$00,$00,$00
-.byte $00,$00,$00,$00,$00,$00,$00,$00
-; Mid-right
-.byte $0E,$0E,$0E,$0E,$0E,$0E,$0E,$0E
-.byte $00,$00,$00,$00,$00,$00,$00,$00
-; Bot-left
-.byte $70,$78,$78,$3C,$3F,$1F,$0F,$03
-.byte $00,$00,$00,$00,$00,$00,$00,$00
-; Bot-mid
-.byte $00,$00,$00,$00,$FF,$FF,$FF,$FF
-.byte $00,$00,$00,$00,$00,$00,$00,$00
-; Bot-right
-.byte $0E,$1E,$1E,$3C,$FC,$F8,$F0,$C0
-.byte $00,$00,$00,$00,$00,$00,$00,$00
+; MR — puff
+.byte $3C,$7E,$FF,$FF,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$7E,$3C,$00,$00
+; BL — puff
+.byte $3C,$7E,$FF,$FF,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$7E,$3C,$00,$00
+; BM — puff
+.byte $3C,$7E,$FF,$FF,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$7E,$3C,$00,$00
+; BR — puff
+.byte $3C,$7E,$FF,$FF,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$7E,$3C,$00,$00
 
 ; === 'U' large — tiles $7B-$83 ===
-; Top-left
-.byte $70,$70,$70,$70,$70,$70,$70,$70
-.byte $00,$00,$00,$00,$00,$00,$00,$00
-; Top-mid
-.byte $00,$00,$00,$00,$00,$00,$00,$00
-.byte $00,$00,$00,$00,$00,$00,$00,$00
-; Top-right
-.byte $0E,$0E,$0E,$0E,$0E,$0E,$0E,$0E
-.byte $00,$00,$00,$00,$00,$00,$00,$00
-; Mid-left
-.byte $70,$70,$70,$70,$70,$70,$70,$70
-.byte $00,$00,$00,$00,$00,$00,$00,$00
-; Mid-mid
+; Grid:  X . X
+;        X . X
+;        X X X
+; TL — puff
+.byte $3C,$7E,$FF,$FF,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$7E,$3C,$00,$00
+; TM — blank
 .byte $00,$00,$00,$00,$00,$00,$00,$00
 .byte $00,$00,$00,$00,$00,$00,$00,$00
-; Mid-right
-.byte $0E,$0E,$0E,$0E,$0E,$0E,$0E,$0E
+; TR — puff
+.byte $3C,$7E,$FF,$FF,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$7E,$3C,$00,$00
+; ML — puff
+.byte $3C,$7E,$FF,$FF,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$7E,$3C,$00,$00
+; MM — blank
 .byte $00,$00,$00,$00,$00,$00,$00,$00
-; Bot-left
-.byte $70,$78,$78,$3C,$3F,$1F,$0F,$03
 .byte $00,$00,$00,$00,$00,$00,$00,$00
-; Bot-mid
-.byte $00,$00,$00,$00,$FF,$FF,$FF,$FF
-.byte $00,$00,$00,$00,$00,$00,$00,$00
-; Bot-right
-.byte $0E,$1E,$1E,$3C,$FC,$F8,$F0,$C0
-.byte $00,$00,$00,$00,$00,$00,$00,$00
+; MR — puff
+.byte $3C,$7E,$FF,$FF,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$7E,$3C,$00,$00
+; BL — puff
+.byte $3C,$7E,$FF,$FF,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$7E,$3C,$00,$00
+; BM — puff
+.byte $3C,$7E,$FF,$FF,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$7E,$3C,$00,$00
+; BR — puff
+.byte $3C,$7E,$FF,$FF,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$7E,$3C,$00,$00
 
 ; === 'D' large — tiles $84-$8C ===
-; Top-left
-.byte $7F,$7F,$7F,$7F,$70,$70,$70,$70
-.byte $00,$00,$00,$00,$00,$00,$00,$00
-; Top-mid
-.byte $FF,$FF,$FF,$FF,$00,$00,$00,$00
-.byte $00,$00,$00,$00,$00,$00,$00,$00
-; Top-right
-.byte $80,$E0,$F0,$F8,$3C,$1E,$0E,$0E
-.byte $00,$00,$00,$00,$00,$00,$00,$00
-; Mid-left
-.byte $70,$70,$70,$70,$70,$70,$70,$70
-.byte $00,$00,$00,$00,$00,$00,$00,$00
-; Mid-mid
+; Grid:  X X .
+;        X . X
+;        X X .
+; TL — puff
+.byte $3C,$7E,$FF,$FF,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$7E,$3C,$00,$00
+; TM — puff
+.byte $3C,$7E,$FF,$FF,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$7E,$3C,$00,$00
+; TR — blank
 .byte $00,$00,$00,$00,$00,$00,$00,$00
 .byte $00,$00,$00,$00,$00,$00,$00,$00
-; Mid-right
-.byte $0E,$0E,$0E,$0E,$0E,$0E,$0E,$0E
+; ML — puff
+.byte $3C,$7E,$FF,$FF,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$7E,$3C,$00,$00
+; MM — blank
 .byte $00,$00,$00,$00,$00,$00,$00,$00
-; Bot-left
-.byte $70,$70,$70,$70,$7F,$7F,$7F,$7F
 .byte $00,$00,$00,$00,$00,$00,$00,$00
-; Bot-mid
-.byte $00,$00,$00,$00,$FF,$FF,$FF,$FF
+; MR — puff
+.byte $3C,$7E,$FF,$FF,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$7E,$3C,$00,$00
+; BL — puff
+.byte $3C,$7E,$FF,$FF,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$7E,$3C,$00,$00
+; BM — puff
+.byte $3C,$7E,$FF,$FF,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$7E,$3C,$00,$00
+; BR — blank
 .byte $00,$00,$00,$00,$00,$00,$00,$00
-; Bot-right
-.byte $0E,$0E,$1E,$3C,$F8,$F0,$E0,$80
 .byte $00,$00,$00,$00,$00,$00,$00,$00
 
 ; === large SPACE — tiles $8D-$95 ===
 .res (9 * 16), $00
 
 ; === 'A' large — tiles $96-$9E ===
-; Top-left
-.byte $03,$0F,$1F,$3F,$3C,$78,$78,$70
-.byte $00,$00,$00,$00,$00,$00,$00,$00
-; Top-mid
-.byte $FF,$FF,$FF,$FF,$00,$00,$00,$00
-.byte $00,$00,$00,$00,$00,$00,$00,$00
-; Top-right
-.byte $C0,$F0,$F8,$FC,$3C,$1E,$1E,$0E
-.byte $00,$00,$00,$00,$00,$00,$00,$00
-; Mid-left
-.byte $70,$70,$7F,$7F,$7F,$7F,$70,$70
-.byte $00,$00,$00,$00,$00,$00,$00,$00
-; Mid-mid
-.byte $00,$00,$FF,$FF,$FF,$FF,$00,$00
-.byte $00,$00,$00,$00,$00,$00,$00,$00
-; Mid-right
-.byte $0E,$0E,$FE,$FE,$FE,$FE,$0E,$0E
-.byte $00,$00,$00,$00,$00,$00,$00,$00
-; Bot-left
-.byte $70,$70,$70,$70,$70,$70,$70,$70
-.byte $00,$00,$00,$00,$00,$00,$00,$00
-; Bot-mid
+; Grid:  . X .
+;        X X X
+;        X . X
+; TL — blank
 .byte $00,$00,$00,$00,$00,$00,$00,$00
 .byte $00,$00,$00,$00,$00,$00,$00,$00
-; Bot-right
-.byte $0E,$0E,$0E,$0E,$0E,$0E,$0E,$0E
+; TM — puff
+.byte $3C,$7E,$FF,$FF,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$7E,$3C,$00,$00
+; TR — blank
 .byte $00,$00,$00,$00,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$00,$00,$00,$00
+; ML — puff
+.byte $3C,$7E,$FF,$FF,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$7E,$3C,$00,$00
+; MM — puff
+.byte $3C,$7E,$FF,$FF,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$7E,$3C,$00,$00
+; MR — puff
+.byte $3C,$7E,$FF,$FF,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$7E,$3C,$00,$00
+; BL — puff
+.byte $3C,$7E,$FF,$FF,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$7E,$3C,$00,$00
+; BM — blank
+.byte $00,$00,$00,$00,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$00,$00,$00,$00
+; BR — puff
+.byte $3C,$7E,$FF,$FF,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$7E,$3C,$00,$00
 
 ; === 'N' large — tiles $9F-$A7 ===
-; Uniform 3px diagonal with consistent stair-step (advance,advance,hold).
-; Left bar cols 1-3, right bar cols 20-22, diagonal 3px wide.
-; Top-left: bar merges with diagonal departing rightward
-.byte $7C,$7E,$7E,$77,$73,$73,$71,$70
+; Grid:  X . X
+;        X X X
+;        X . X
+; TL — puff
+.byte $3C,$7E,$FF,$FF,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$7E,$3C,$00,$00
+; TM — blank
 .byte $00,$00,$00,$00,$00,$00,$00,$00
-; Top-mid: diagonal enters from left
-.byte $00,$00,$00,$00,$80,$80,$C0,$E0
 .byte $00,$00,$00,$00,$00,$00,$00,$00
-; Top-right: right bar only
-.byte $0E,$0E,$0E,$0E,$0E,$0E,$0E,$0E
+; TR — puff
+.byte $3C,$7E,$FF,$FF,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$7E,$3C,$00,$00
+; ML — puff
+.byte $3C,$7E,$FF,$FF,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$7E,$3C,$00,$00
+; MM — puff
+.byte $3C,$7E,$FF,$FF,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$7E,$3C,$00,$00
+; MR — puff
+.byte $3C,$7E,$FF,$FF,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$7E,$3C,$00,$00
+; BL — puff
+.byte $3C,$7E,$FF,$FF,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$7E,$3C,$00,$00
+; BM — blank
 .byte $00,$00,$00,$00,$00,$00,$00,$00
-; Mid-left: left bar only (diagonal is in mid tile)
-.byte $70,$70,$70,$70,$70,$70,$70,$70
 .byte $00,$00,$00,$00,$00,$00,$00,$00
-; Mid-mid: diagonal passes through center, uniform 3px
-.byte $E0,$70,$38,$38,$1C,$0E,$0E,$07
-.byte $00,$00,$00,$00,$00,$00,$00,$00
-; Mid-right: right bar only (diagonal still in mid tile)
-.byte $0E,$0E,$0E,$0E,$0E,$0E,$0E,$0E
-.byte $00,$00,$00,$00,$00,$00,$00,$00
-; Bot-left: left bar only
-.byte $70,$70,$70,$70,$70,$70,$70,$70
-.byte $00,$00,$00,$00,$00,$00,$00,$00
-; Bot-mid: diagonal exits rightward
-.byte $03,$03,$01,$00,$00,$00,$00,$00
-.byte $00,$00,$00,$00,$00,$00,$00,$00
-; Bot-right: diagonal merges with right bar
-.byte $8E,$8E,$CE,$EE,$EE,$7E,$3E,$1E
-.byte $00,$00,$00,$00,$00,$00,$00,$00
+; BR — puff
+.byte $3C,$7E,$FF,$FF,$00,$00,$00,$00
+.byte $00,$00,$00,$00,$7E,$3C,$00,$00
 
 ; --- Pad remaining BG tiles to fill pattern table 0 ($0000-$0FFF) ---
 ; We've used tiles $00-$A7 = 168 tiles x 16 bytes = 2688 bytes

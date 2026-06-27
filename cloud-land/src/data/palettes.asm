@@ -5,8 +5,21 @@
 ; ============================================================
 .segment "RODATA"
 
-; --- Title screen / Level 1 palette ---
+; --- Title screen palette ---
+; Sky blue background, white cloud body, medium-blue shadow for cloud puff tiles
 palette_title:
+    ; Background palettes
+    .byte $21, $30, $11, $0F       ; BG 0: sky blue, white, med-blue shadow, black
+    .byte $21, $30, $11, $0F       ; BG 1
+    .byte $21, $30, $11, $0F       ; BG 2
+    .byte $21, $30, $11, $0F       ; BG 3
+    ; Sprite palettes (sprites hidden on title screen; values don't matter)
+    .byte $21, $28, $15, $04
+    .byte $21, $28, $19, $09
+    .byte $21, $15, $25, $30
+    .byte $21, $0F, $10, $30
+
+; --- Level 1 palette ---
 palette_level1:
     ; Background palettes
     .byte $2C, $30, $0F, $0F       ; BG 0: cyan, white, black, black
@@ -14,7 +27,7 @@ palette_level1:
     .byte $2C, $30, $0F, $0F       ; BG 2
     .byte $2C, $30, $0F, $0F       ; BG 3
     ; Sprite palettes
-    .byte $2C, $28, $15, $04       ; SPR 0: player cat (yellow eyes, hot pink paws, deep purple body) (yellow eyes, pink tail/paws, dark purple body)
+    .byte $2C, $28, $15, $04       ; SPR 0: player cat (yellow eyes, hot pink paws, deep purple body)
     .byte $2C, $28, $19, $09       ; SPR 1: bird (yellow eye, dark green beak, very dark green body)
     .byte $2C, $15, $25, $30       ; SPR 2: heart (hot pink, light pink, white)
     .byte $2C, $0F, $10, $30       ; SPR 3: unused
